@@ -1,0 +1,111 @@
+<?php
+
+function fossee_forum_discussion_schema()
+{
+	$schema = array();
+
+	$schema['fossee_forum_discussion_comments'] = array(
+		'description' => 'Schema to store all the comments.',
+		'fields' => array(
+	      		'comment_id' => array(
+	         	'description' => 'Unique id for each comments',
+	         	'type'        => 'serial',
+	         	'unsigned'    => TRUE,
+	         	'not null'    => TRUE,
+	       		),
+	      		'user_id' => array(
+	         	'description' => 'User Id for each comments',
+	         	'type'        => 'int',
+	         	'not null'    => TRUE,
+	       		),
+	       		'user_name' => array(
+	         	'description' => 'User name for each comments',
+	         	'type'        => 'text',
+	         	'not null'    => TRUE,
+	       		),
+	      		'comment' => array(
+	         	'description' => 'Comment Text',
+	         	'type'        => 'text',
+	         	'not null'    => TRUE,
+	       		),
+	   	),
+		'primary key' => array('comment_id'),
+	);
+	$schema['fossee_forum_discussion_testing'] = array(
+		'description' => 'Testing Purpose',
+		'fields' => array(
+			'a' => array(
+				'type' => 'text'
+			),
+			'b' => array(
+				'type' => 'text'
+			),
+			'c' => array(
+				'type' => 'text'
+			),
+			'd' => array(
+				'type' => 'text'
+			),
+			'e' => array(
+				'type' => 'text'
+			),
+		),
+	);
+	$schema['fossee_forum_discussion_comment_replies'] = array(
+		'description' => 'Schema to store all the replies of a single parent comment.',
+		'fields' => array(
+	      		'reply_message_id' => array(
+	         	'description' => 'Unique id for each replies',
+	         	'type'        => 'serial',
+	         	'unsigned'    => TRUE,
+	         	'not null'    => TRUE,
+	       		),
+	       		'parent_comment_id' => array(
+	         	'description' => 'Parent comment Id for each replies.',
+	         	'type'        => 'int',
+	         	'unsigned'    => TRUE,
+	         	'not null'    => TRUE,
+	       		),
+	      		'user_id' => array(
+	         	'description' => 'User Id for each replies',
+	         	'type'        => 'int',
+	         	'not null'    => TRUE,
+	       		),
+	       		'user_name' => array(
+	         	'description' => 'User name for each replies',
+	         	'type'        => 'text',
+	         	'not null'    => TRUE,
+	       		),
+	      		'reply_message' => array(
+	         	'description' => 'Reply Message',
+	         	'type'        => 'text',
+	         	'not null'    => TRUE,
+	       		),
+	   	),
+//		'foreign keys' => array(
+//	         	'fossee_forum_discussion_comments' => array(
+//        		'table' => 'fossee_forum_discussion_comments',
+//        		'columns' => array('comment_id' => 'comment_id'),
+//      			),		  
+//	         ),
+	         'primary key' => array('reply_message_id'),
+	);
+	return $schema;
+}
+
+//function fossee_forum_discussion_install()
+//{
+//	db_query('
+//		ALTER TABLE {fossee_forum_discussion_comment_replies}
+//		ADD CONSTRAINT {fossee_forum_discussion_comments}
+//		FOREIGN KEY (comment_id) REFERENCES {fossee_forum_discussion_comments} {comment_id}
+//	');
+//}
+
+//function fossee_forum_discussion_uninstall()
+//{
+//	db_query('
+//		ALTER TABLE {fossee_forum_discussion_comment_replies}
+//		DROP CONSTRAINT IF EXISTS {fossee_forum_discussion_comments}
+//	');
+//}

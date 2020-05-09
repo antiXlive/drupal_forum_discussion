@@ -1,0 +1,190 @@
+<?php
+
+/**
+ * @author Piyush Kumar
+*/
+
+
+
+function fossee_forum_discussion_menu()
+{
+  $items = array();
+  $items['admin/config/content/fossee_forum_discussion'] = array(
+    'title' => 'Configure the settings for Fossee Forum Discussion Module.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('fossee_forum_discussion_settings_form'),
+    'access arguments' => array('administer users'),
+    'type' => MENU_NORMAL_ITEM,
+  );
+
+  return $items;
+}
+
+function fossee_forum_discussion_settings_form($form, &$form_state)
+{
+  $form['fossee_forum_discussion_minlength'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Minimum length for comment message :'),
+    '#default_value' => variable_get('fossee_forum_discussion_minlength', 10),
+    '#required' => TRUE,
+  );
+  $form['fossee_forum_discussion_maxlength'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Maximum length for comment message :'),
+    '#default_value' => variable_get('fossee_forum_discussion_maxlength', 20),
+    '#required' => TRUE,
+  );
+
+  return system_settings_form($form);
+}
+
+
+
+// hook_block_info()
+
+function fossee_forum_discussion_block_info()
+{
+    $blocks = array();
+    
+    $blocks['fossee_forum_discussion_comments'] = array(
+    	'info' => t("Fossee Forum Discussion Comments"),
+    );
+    $blocks['fossee_forum_discussion_form'] = array(
+        'info' => t("Fossee Forum Discussion Comment Form"),
+    );
+
+    return $blocks;
+}
+
+
+// hook_block_view
+
+function fossee_forum_discussion_block_view($delta = "")
+{
+    global $user;
+    $block = array();
+    
+    switch($delta)
+    {
+    	case "fossee_forum_discussion_comments":
+        	$block['subject'] = t("<h1 style='color:#178a7a;font-size:35px'>Comments</h1>");
+        	$allcomments = getComments();
+        	$block['content'] = theme('fossee_forum_discussion', 
+        		array(
+          		'comment' => $allcomments,
+        		)
+        	);
+        break;
+        
+        case "fossee_forum_discussion_form":
+            $block['subject'] = t("<br>");
+            $block['content'] = drupal_get_form("fossee_forum_discussion_comment_form");
+//	    $block['content'] = ("HHEY");
+        break;
+    }
+
+    return $block;
+}
+
+function fossee_forum_discussion_comment_form($form, &$form_state){
+
+    $form = array();
+
+    $form['comment'] = array(
+        '#type' => 'textarea',
+        '#title' => t('Enter your comment :'),
+        '#attributes' => array(
+        	'placeholder' => t('Your comment goes here.....'),
+      	),
+      	'#ajax' => array(
+      	'callback' => 'update_length_ajax_callback',
+      	'wrapper' => 'length-div',
+      	'method' => 'replace',
+      	'effect' => 'fade',
+    ),
+      );
+    $form['length'] = array(
+    	'#type' => 'textfield',
+    	'#default_value' => 0,
+    	'#value' => isset($form_state['values']['comment']) ? strlen(trim(preg_replace('/\s+/',' ', $form_state['values']['comment']))) : 0,
+    	'#prefix' => '<div id="length-div">',
+    	'#suffix' => '</div>',
+    	'#attributes' => array('readonly' => 'readonly'),
+    );
+      $form['submit'] = array(
+        '#type' => 'submit',
+        '#value' => t('Comment'),
+      );
+    
+    return $form;
+}
+
+function update_length_ajax_callback($form, &$form_state)
+{
+	return $form['length'];
+}
+
+function fossee_forum_discussion_comment_form_validate($form, &$form_state)
+{
+	$commentmsg = $form_state['values']['comment'];
+	
+	$minlength  = variable_get('fossee_forum_discussion_minlength');
+	$maxlength  = variable_get('fossee_forum_discussion_maxlength');
+	$limit      = $maxlength+1;
+	$commentmsg = trim(preg_replace('/\s+/',' ', $commentmsg));
+	$current_length = strlen($commentmsg);
+	
+	if(!user_is_logged_in())
+	{
+		form_set_error('Comment Error:');
+		drupal_set_message(t("You are not logged in."), 'error');
+	}
+	elseif($current_length < $minlength)
+	{
+		form_set_error('Comment Error:');
+		drupal_set_message(t("Please enter a minimum of $minlength characters."), 'error');
+	}
+	elseif($current_length > $maxlength)
+	{
+		form_set_error('Comment Error:');
+		drupal_set_message(t("Please enter lesss than $limit characters."), 'error');
+	}
+}
+
+function fossee_forum_discussion_comment_form_submit($form, &$form_state)
+{
+	global $user;
+	$user_id = $user->uid;
+	$user_name = $user->name;
+	$query = db_insert('fossee_forum_discussion_comments')
+            ->fields(array(
+              'user_id'   => $user_id,
+              'user_name' => $user_name,
+              'comment'   => $form_state['values']['comment'],
+            ));
+        $query->execute();
+	drupal_set_message(t("DONE"));
+}
+
+function getComments()
+{
+  $results = db_query("select * from {fossee_forum_discussion_comments}");
+  $output = array();
+  foreach($results as $result)
+  {
+  	$output[] =array($result);
+  }
+return $output;
+}
+
+
+function fossee_forum_discussion_theme() {
+  return array(
+    'fossee_forum_discussion' => array(
+    	'variables' => array(
+    		'comment' => NULL,
+    	),
+      'template' => 'fossee_forum_discussion',
+    ),
+  );
+}
