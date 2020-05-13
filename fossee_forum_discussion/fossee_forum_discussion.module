@@ -25,13 +25,13 @@ function fossee_forum_discussion_settings_form($form, &$form_state)
   $form['fossee_forum_discussion_minlength'] = array(
     '#type' => 'textfield',
     '#title' => t('Minimum length for comment message :'),
-    '#default_value' => variable_get('fossee_forum_discussion_minlength', 10),
+    '#default_value' => variable_get('fossee_forum_discussion_minlength', 15),
     '#required' => TRUE,
   );
   $form['fossee_forum_discussion_maxlength'] = array(
     '#type' => 'textfield',
     '#title' => t('Maximum length for comment message :'),
-    '#default_value' => variable_get('fossee_forum_discussion_maxlength', 20),
+    '#default_value' => variable_get('fossee_forum_discussion_maxlength', 2000),
     '#required' => TRUE,
   );
 
@@ -79,7 +79,6 @@ function fossee_forum_discussion_block_view($delta = "")
         case "fossee_forum_discussion_form":
             $block['subject'] = t("<br>");
             $block['content'] = drupal_get_form("fossee_forum_discussion_comment_form");
-//	    $block['content'] = ("HHEY");
         break;
     }
 

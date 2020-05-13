@@ -8,7 +8,7 @@ $i = 1;
 foreach($comment as $c)
 {
 ?>
-	<div style="margin-left:3%;width:95%;height:100%;margin-bottom:1%">
+	<div style="margin-left:3%;width:95%;height:100%;margin-bottom:1%" id="demo">
 		<div style="border:1px solid #868686;border-radius:30px;">
 			<p style="color:black;padding:0 1.5%;padding-top:1%;margin-bottom:1%">
 				<?php print ($c[0]->comment); ?>
@@ -24,15 +24,17 @@ foreach($comment as $c)
 			<p style="color:black;float:right;padding-right:2%;margin:0;font-size:13px;">
 				<?php print ($c[0]->user_name); ?>
 			</p>
-			<div style="width:90%;margin:-2% auto 2% auto;display:none" id="replydiv<?php echo $i ?>">
+			<div style="width:85%;margin:-2% auto 2% auto;display:none" id="replydiv<?php echo $i ?>">
 				<?php
 					$all_replies = get_replies($i);
 					if($all_replies)
 					{
 						foreach($all_replies as $reply)
 						{
-							$replyMsg = $reply[0]->reply_message; 
-							echo"<p>$replyMsg</p>";
+							$replyMsg = $reply[0]->reply_message;
+							$user = $reply[0]->user_name;
+							echo"<p style='border:1px solid #868686;border-radius:30px;padding:1% 1.5%;margin-bottom:0;color:black'>$replyMsg</p>";
+							echo"<p style='font-size:12px;margin-bottom:1%;padding:0;margin-left:72%;color:black'>$user</p>";
 						}
 					}
 				?>
@@ -51,19 +53,6 @@ foreach($comment as $c)
 				</form>
 			</div>
 		</div>
-		<!--<div style="border:1px solid black;width:90%;margin-left:4%;">
-//			<?php 
-//				$all_replies = get_replies($i);
-//				if($all_replies)
-//				{
-//					print_r($all_replies[0][0]->reply_message);
-//				}
-//				else
-//				{
-//					print("N/A");
-//				}
-//			 ?>
-		</div>-->
 	</div>
 	
 <?php

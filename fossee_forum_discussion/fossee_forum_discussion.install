@@ -31,26 +31,6 @@ function fossee_forum_discussion_schema()
 	   	),
 		'primary key' => array('comment_id'),
 	);
-	$schema['fossee_forum_discussion_testing'] = array(
-		'description' => 'Testing Purpose',
-		'fields' => array(
-			'a' => array(
-				'type' => 'text'
-			),
-			'b' => array(
-				'type' => 'text'
-			),
-			'c' => array(
-				'type' => 'text'
-			),
-			'd' => array(
-				'type' => 'text'
-			),
-			'e' => array(
-				'type' => 'text'
-			),
-		),
-	);
 	$schema['fossee_forum_discussion_comment_replies'] = array(
 		'description' => 'Schema to store all the replies of a single parent comment.',
 		'fields' => array(
@@ -82,30 +62,7 @@ function fossee_forum_discussion_schema()
 	         	'not null'    => TRUE,
 	       		),
 	   	),
-//		'foreign keys' => array(
-//	         	'fossee_forum_discussion_comments' => array(
-//        		'table' => 'fossee_forum_discussion_comments',
-//        		'columns' => array('comment_id' => 'comment_id'),
-//      			),		  
-//	         ),
 	         'primary key' => array('reply_message_id'),
 	);
 	return $schema;
 }
-
-//function fossee_forum_discussion_install()
-//{
-//	db_query('
-//		ALTER TABLE {fossee_forum_discussion_comment_replies}
-//		ADD CONSTRAINT {fossee_forum_discussion_comments}
-//		FOREIGN KEY (comment_id) REFERENCES {fossee_forum_discussion_comments} {comment_id}
-//	');
-//}
-
-//function fossee_forum_discussion_uninstall()
-//{
-//	db_query('
-//		ALTER TABLE {fossee_forum_discussion_comment_replies}
-//		DROP CONSTRAINT IF EXISTS {fossee_forum_discussion_comments}
-//	');
-//}
