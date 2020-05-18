@@ -1,17 +1,17 @@
-<?php 
+<?php
 if($comment)
 {
 ?>
-<div style="width:100%;display:flex;flex-direction:column">
+<div style="width:100%;display:flex;flex-direction:column;padding-top:3%;">
 <?php
 $i = 1;
 foreach($comment as $c)
 {
 ?>
-	<div style="margin-left:3%;width:95%;height:100%;margin-bottom:1%" id="demo">
+	<div style="margin-left:3%;width:85%;height:100%;margin-bottom:1%" id="demo">
 		<div style="border:1px solid #868686;border-radius:30px;">
 			<p style="color:black;padding:0 1.5%;padding-top:1%;margin-bottom:1%">
-				<?php print ($c[0]->comment); ?>
+				<?php print_r ($c[0]->comment_msg); ?>
 			</p>
 		</div>
 		<div style="width:95%;margin:0 auto;">
@@ -19,31 +19,34 @@ foreach($comment as $c)
 				<a style="text-decoration:none;cursor:pointer;" onclick="toggleReplyForm(<?php print($i); ?>)">Reply</a>
 			</p>
 			<p style="display:inline-block;padding-left:3%;cursor:pointer;color:#015f8c" onclick="toggleReplyView(<?php print($i) ?>)">
-				<?php print(get_reply_count($i)." Reply"); ?>
+				<?php print(get_reply_count($c[0]->comment_id)." Reply"); ?>
 			</p>
-			<p style="color:black;float:right;padding-right:2%;margin:0;font-size:13px;">
+			<p style="color:black;float:right;margin:0;font-size:13px;">
 				<?php print ($c[0]->user_name); ?>
 			</p>
-			<div style="width:85%;margin:-2% auto 2% auto;display:none" id="replydiv<?php echo $i ?>">
+			<div style="width:85%;margin:1% auto 2% auto;display:none" id="replydiv<?php echo $i ?>">
 				<?php
-					$all_replies = get_replies($i);
+					$all_replies = get_replies($c[0]->comment_id);
 					if($all_replies)
 					{
 						foreach($all_replies as $reply)
 						{
 							$replyMsg = $reply[0]->reply_message;
 							$user = $reply[0]->user_name;
-							echo"<p style='border:1px solid #868686;border-radius:30px;padding:1% 1.5%;margin-bottom:0;color:black'>$replyMsg</p>";
-							echo"<p style='font-size:12px;margin-bottom:1%;padding:0;margin-left:72%;color:black'>$user</p>";
+							   echo"<p 
+							   	   style='border:1px solid #868686;border-radius:30px;padding:0.8% 1.5%;margin-bottom:0;color:black;margin-top:3%'>
+							           $replyMsg
+							   	</p>";
+							   echo"<p style='font-size:12px;margin-bottom:1%;padding:0;color:black;float:right;margin-right:5%;'>$user</p>";
 						}
 					}
 				?>
 			</div>
 			
-			<div style="width:75%;margin: 0 auto;margin-top:-1%;text-align:center;display:none;" id="replyForm<?php echo $i;?>">
-				<form action="" method="POST">
-					<input type="hidden" name="commentid" value="<?php print($i); ?>">
-					<textarea rows="3" cols="50" name="replyMsg" placeholder="Your reply goes here...."></textarea>
+			<div style="display:none;" id="replyForm<?php echo $i;?>">
+				<form style="display:flex;flex-direction:column;align-items:center;" action="" method="POST">
+					<input type="hidden" name="commentid" value="<?php print($c[0]->comment_id); ?>">
+					<textarea rows="3" cols="50" name="replyMsg" placeholder="Your reply goes here...." style="width:70%;"></textarea>
 					<button 
 						type="submit" 
 						style="border:none;background-color:inherit;color:green;cursor:pointer"
@@ -65,9 +68,8 @@ $i++;
 else
 {
 ?>
-	<div style="border:1px solid #e4e4e4;height:100px;width:76%;">
-		<div style="width:70%;height:30%;border:1px solid #e4e4e4;margin:1% 1%;"></div>
-		<div style="width:70%;height:30%;border:1px solid #e4e4e4;margin:1% 1%;"></div>
+	<div style="width:100%;text-align:center">
+		<h1 style="font-size:26px;color:#A7DDD6;">No Comments</h1>
 	</div>
 <?php
 }
@@ -76,16 +78,28 @@ else
 <script>
 	function toggleReplyForm(i)
 	{
-		//console.log("replyForm" +i);
-		var replyForm = document.getElementById("replyForm"+i);
-		if(replyForm.style.display === "none")
-		{
-			replyForm.style.display = "block";
+		<?php 
+			if(!user_is_logged_in()){
+			global $base_url;
+		?>
+			window.location = "<?php echo $base_url ?>/user";
+		<?php
 		}
 		else
 		{
-			replyForm.style.display = "none";
+		?>
+			var replyForm = document.getElementById("replyForm"+i);
+			if(replyForm.style.display === "none")
+			{
+				replyForm.style.display = "block";
+			}
+			else
+			{
+				replyForm.style.display = "none";
+			}
+		<?php
 		}
+		?>
 	}
 	
 	function toggleReplyView(i)
@@ -155,7 +169,6 @@ else
 
 
 
-
 <?php
 	if(isset($_POST['replyForm']))
 	{
@@ -163,8 +176,9 @@ else
 		{
 			global $user;
 			
-			$uid = $user->uid;
+			$uid   = $user->uid;
 			$uname = $user->name;
+			$umail = $user->mail;
 			$cid = $_POST['commentid'];
 			$replymsg = $_POST['replyMsg'];
 			
@@ -190,19 +204,17 @@ else
             			'parent_comment_id' => $cid,
             			'user_id' => $uid,
             			'user_name' => $uname,
+            			'user_email' => $umail,
             			'reply_message' => $replymsg,
             			));
         			$query->execute();
-        			drupal_set_message(t("DONE"));
+        			$all_user_emails = get_user_emails($cid);
+        			$all_user_emails = substr($all_user_emails, 0, -1);
+        			send_email_to_reply_author($umail, $replymsg);
+        			send_email_to_forum_members($all_user_emails, $replymsg);
         			$redirect = url(current_path(), array('absolute' => TRUE));
 				header('Location: '.$redirect);
-				drupal_set_message(t("DONE"));
 			}
-  			
-		}
-		else
-		{
-			drupal_set_message("You are not logged in.", "error");
 		}
 	}
 ?>
@@ -229,31 +241,47 @@ function get_replies($cid)
   	foreach($results as $result)
   	{
   		$output[] =array($result);
-		//print_r($result);
   	}
   	return $output;
 }
+
+function get_user_emails($cid)
+{
+	$results = db_query("select distinct user_email from {fossee_forum_discussion_comment_replies} where parent_comment_id='$cid'");
+	$output = array();
+	$emails = " ";
+  	foreach($results as $result)
+  	{
+  		$output[] = $result->user_email;
+  		$emails.= $result->user_email.",";
+  	}
+  	return $emails;
+}
+
+function send_email_to_reply_author($user_email, $replymsg)
+{
+	//$params = array('reply_msg' => $replymsg);
+	$params['reply_email_to_author']['reply_msg'] = $replymsg;
+	drupal_mail('fossee_forum_discussion', 'reply_email_to_author', $user_email, language_default(), $params);
+}
+
+function send_email_to_forum_members($all_user_emails, $replymsg)
+{
+//	$params = array(
+//		'headers' => array(
+//			'Bcc' => $all_user_emails,
+//		),
+//		'reply_msg' => $replymsg,
+//	);
+	$params['reply_email_to_forum_members']['reply_msg'] = $replymsg;
+	$params['reply_email_to_forum_members']['headers'] = array(
+//		'MIME-Version' => '1.0',
+//		'Content-Type' => 'text/plain; charset=UTF-8; format=flowed; delsp=yes',
+//		'Content-Transfer-Encoding' => '8Bit',
+//		'X-Mailer' => 'Drupal',
+		'Bcc' => $all_user_emails
+	);
+	drupal_mail('fossee_forum_discussion', 'reply_email_to_forum_members', 'anon2@yopmail.com', language_default(), $params);
+}
+
 ?>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

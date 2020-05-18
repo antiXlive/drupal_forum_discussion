@@ -5,6 +5,9 @@
 */
 
 
+//************************************************************************----MODULE_SETTINGS_START----************************************************************************
+
+require_once('email.inc');
 
 function fossee_forum_discussion_menu()
 {
@@ -38,9 +41,10 @@ function fossee_forum_discussion_settings_form($form, &$form_state)
   return system_settings_form($form);
 }
 
+//************************************************************************----MODULE_SETTINGS_END----************************************************************************
 
 
-// hook_block_info()
+
 
 function fossee_forum_discussion_block_info()
 {
@@ -57,18 +61,18 @@ function fossee_forum_discussion_block_info()
 }
 
 
-// hook_block_view
 
 function fossee_forum_discussion_block_view($delta = "")
 {
-    global $user;
     $block = array();
     
     switch($delta)
     {
     	case "fossee_forum_discussion_comments":
-        	$block['subject'] = t("<h1 style='color:#178a7a;font-size:35px'>Comments</h1>");
-        	$allcomments = getComments();
+        	$block['subject'] = t("<br><h1 style='color:#178a7a;font-size:35px'>Comments</h1>");
+        	$current_path = url(current_path(), array('absolute' => TRUE));
+		$pid = substr(strrchr($current_path, "/"), 1);
+        	$allcomments = getComments($pid);
         	$block['content'] = theme('fossee_forum_discussion', 
         		array(
           		'comment' => $allcomments,
@@ -89,7 +93,9 @@ function fossee_forum_discussion_comment_form($form, &$form_state){
 
     $form = array();
 
-    $form['comment'] = array(
+    if(user_is_logged_in())
+    {
+    	$form['comment'] = array(
         '#type' => 'textarea',
         '#title' => t('Enter your comment :'),
         '#attributes' => array(
@@ -100,20 +106,30 @@ function fossee_forum_discussion_comment_form($form, &$form_state){
       	'wrapper' => 'length-div',
       	'method' => 'replace',
       	'effect' => 'fade',
-    ),
+    	),
       );
-    $form['length'] = array(
+      $form['length'] = array(
     	'#type' => 'textfield',
     	'#default_value' => 0,
     	'#value' => isset($form_state['values']['comment']) ? strlen(trim(preg_replace('/\s+/',' ', $form_state['values']['comment']))) : 0,
     	'#prefix' => '<div id="length-div">',
     	'#suffix' => '</div>',
     	'#attributes' => array('readonly' => 'readonly'),
-    );
+    	);
       $form['submit'] = array(
         '#type' => 'submit',
         '#value' => t('Comment'),
-      );
+      	);
+    }
+    else
+    {
+    	$form['submit'] = array(
+        '#type' => 'submit',
+        '#value' => t('Add a Comment'),
+      	);
+    }
+    
+    
     
     return $form;
 }
@@ -125,49 +141,65 @@ function update_length_ajax_callback($form, &$form_state)
 
 function fossee_forum_discussion_comment_form_validate($form, &$form_state)
 {
-	$commentmsg = $form_state['values']['comment'];
+
+	if(user_is_logged_in())
+	{	
+		$commentmsg = $form_state['values']['comment'];
 	
-	$minlength  = variable_get('fossee_forum_discussion_minlength');
-	$maxlength  = variable_get('fossee_forum_discussion_maxlength');
-	$limit      = $maxlength+1;
-	$commentmsg = trim(preg_replace('/\s+/',' ', $commentmsg));
-	$current_length = strlen($commentmsg);
+		$minlength  = variable_get('fossee_forum_discussion_minlength');
+		$maxlength  = variable_get('fossee_forum_discussion_maxlength');
+		$limit      = $maxlength+1;
+		$commentmsg = trim(preg_replace('/\s+/',' ', $commentmsg));
+		$current_length = strlen($commentmsg);
 	
-	if(!user_is_logged_in())
-	{
-		form_set_error('Comment Error:');
-		drupal_set_message(t("You are not logged in."), 'error');
+	
+		if($current_length < $minlength)
+		{
+			form_set_error('Comment Error:');
+			drupal_set_message(t("Please enter a minimum of $minlength characters."), 'error');
+		}
+		elseif($current_length > $maxlength)
+		{
+			form_set_error('Comment Error:');
+			drupal_set_message(t("Please enter lesss than $limit characters."), 'error');
+		}
 	}
-	elseif($current_length < $minlength)
+	elseif(!user_is_logged_in())
 	{
+		global $base_url;
 		form_set_error('Comment Error:');
-		drupal_set_message(t("Please enter a minimum of $minlength characters."), 'error');
-	}
-	elseif($current_length > $maxlength)
-	{
-		form_set_error('Comment Error:');
-		drupal_set_message(t("Please enter lesss than $limit characters."), 'error');
+		$redirect = $base_url."/user";
+		header('Location: '.$redirect);
 	}
 }
 
 function fossee_forum_discussion_comment_form_submit($form, &$form_state)
 {
 	global $user;
-	$user_id = $user->uid;
-	$user_name = $user->name;
+	$user_id    = $user->uid;
+	$user_name  = $user->name;
+	$user_email = $user->mail;
+	$current_path = url(current_path(), array('absolute' => TRUE));
+	$pid = substr(strrchr($current_path, "/"), 1);
+	
 	$query = db_insert('fossee_forum_discussion_comments')
             ->fields(array(
-              'user_id'   => $user_id,
-              'user_name' => $user_name,
-              'comment'   => $form_state['values']['comment'],
+              'user_id'    => $user_id,
+              'user_name'  => $user_name,
+              'user_email' => $user_email,
+              'comment_msg'=> $form_state['values']['comment'],
+              'forum_id'   => $pid,
             ));
         $query->execute();
+        $params['comment_email_to_author']['comment_msg'] = $form_state['values']['comment'];
+        //$params = array('comment_msg' => $form_state['values']['comment']);
+        drupal_mail('fossee_forum_discussion', 'comment_email_to_author', $user_email, language_default(), $params);
 	drupal_set_message(t("DONE"));
 }
 
-function getComments()
+function getComments($pid)
 {
-  $results = db_query("select * from {fossee_forum_discussion_comments}");
+  $results = db_query("select * from {fossee_forum_discussion_comments} where forum_id = '$pid'");
   $output = array();
   foreach($results as $result)
   {

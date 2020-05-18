@@ -23,11 +23,22 @@ function fossee_forum_discussion_schema()
 	         	'type'        => 'text',
 	         	'not null'    => TRUE,
 	       		),
-	      		'comment' => array(
+	       		'user_email' => array(
+	         	'description' => 'User email for each comments',
+	         	'type'        => 'text',
+	         	'not null'    => TRUE,
+	       		),
+	      		'comment_msg' => array(
 	         	'description' => 'Comment Text',
 	         	'type'        => 'text',
 	         	'not null'    => TRUE,
 	       		),
+	       		'forum_id' => array(
+	         	'description' => 'Stores the ID of page as Forum Id',
+	         	'type'        => 'int',
+	         	'not null'    => TRUE,
+	       		),
+	       		
 	   	),
 		'primary key' => array('comment_id'),
 	);
@@ -53,6 +64,11 @@ function fossee_forum_discussion_schema()
 	       		),
 	       		'user_name' => array(
 	         	'description' => 'User name for each replies',
+	         	'type'        => 'text',
+	         	'not null'    => TRUE,
+	       		),
+	       		'user_email' => array(
+	         	'description' => 'User email for each comments',
 	         	'type'        => 'text',
 	         	'not null'    => TRUE,
 	       		),
