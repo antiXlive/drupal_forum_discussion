@@ -11,7 +11,20 @@ foreach($comment as $c)
 	<div style="margin-left:3%;width:85%;height:100%;margin-bottom:1%" id="demo">
 		<div style="border:1px solid #868686;border-radius:30px;">
 			<p style="color:black;padding:0 1.5%;padding-top:1%;margin-bottom:1%">
-				<?php print_r ($c[0]->comment_msg); ?>
+				<?php print_r ($c[0]->comment_msg); 
+//					$all_user_emails = get_user_emails($c[0]->comment_id);
+//					//print_r($all_user_emails);
+//					
+//					$a = "anon1@yopmail.com";
+//					$b = "anon1@yopmail.com";
+//					//$b = "piyushvostro@gmail.com";
+//					$filter = array($a.",", $b.",");
+//        				$all_user_emails = str_replace($filter, '', $all_user_emails);
+//        				//print_r($all_user_emails);
+//        				$all_user_emails = substr($all_user_emails, 0, -1);
+//        				print_r($all_user_emails);
+				
+				?>
 			</p>
 		</div>
 		<div style="width:95%;margin:0 auto;">
@@ -208,10 +221,21 @@ else
             			'reply_message' => $replymsg,
             			));
         			$query->execute();
+        			
+        			$results = db_query("select user_email from {fossee_forum_discussion_comments} where comment_id='$cid'");
+				$comment_author_email = "";
+			  	foreach($results as $result)
+  				{
+  					$comment_author_email.= $result->user_email;
+  				}
+        			
+        			$filter = array($comment_author_email.",", $umail.",");
         			$all_user_emails = get_user_emails($cid);
+        			$all_user_emails = str_replace($filter, '', $all_user_emails);
         			$all_user_emails = substr($all_user_emails, 0, -1);
+        			
         			send_email_to_reply_author($umail, $replymsg);
-        			send_email_to_forum_members($all_user_emails, $replymsg);
+        			send_email_to_forum_members($comment_author_email, $all_user_emails, $replymsg);
         			$redirect = url(current_path(), array('absolute' => TRUE));
 				header('Location: '.$redirect);
 			}
@@ -260,19 +284,12 @@ function get_user_emails($cid)
 
 function send_email_to_reply_author($user_email, $replymsg)
 {
-	//$params = array('reply_msg' => $replymsg);
 	$params['reply_email_to_author']['reply_msg'] = $replymsg;
 	drupal_mail('fossee_forum_discussion', 'reply_email_to_author', $user_email, language_default(), $params);
 }
 
-function send_email_to_forum_members($all_user_emails, $replymsg)
+function send_email_to_forum_members($comment_author_email, $all_user_emails, $replymsg)
 {
-//	$params = array(
-//		'headers' => array(
-//			'Bcc' => $all_user_emails,
-//		),
-//		'reply_msg' => $replymsg,
-//	);
 	$params['reply_email_to_forum_members']['reply_msg'] = $replymsg;
 	$params['reply_email_to_forum_members']['headers'] = array(
 //		'MIME-Version' => '1.0',
@@ -281,7 +298,7 @@ function send_email_to_forum_members($all_user_emails, $replymsg)
 //		'X-Mailer' => 'Drupal',
 		'Bcc' => $all_user_emails
 	);
-	drupal_mail('fossee_forum_discussion', 'reply_email_to_forum_members', 'anon2@yopmail.com', language_default(), $params);
+	drupal_mail('fossee_forum_discussion', 'reply_email_to_forum_members', $comment_author_email, language_default(), $params);
 }
 
 ?>

@@ -4,10 +4,9 @@
  * @author Piyush Kumar
 */
 
+require_once('email.inc');
 
 //************************************************************************----MODULE_SETTINGS_START----************************************************************************
-
-require_once('email.inc');
 
 function fossee_forum_discussion_menu()
 {
@@ -45,6 +44,7 @@ function fossee_forum_discussion_settings_form($form, &$form_state)
 
 
 
+//************************************************************************----MODULE_BLOCKS_START----************************************************************************
 
 function fossee_forum_discussion_block_info()
 {
@@ -89,6 +89,10 @@ function fossee_forum_discussion_block_view($delta = "")
     return $block;
 }
 
+//************************************************************************----MODULE_BLOCKS_END----************************************************************************
+
+
+
 function fossee_forum_discussion_comment_form($form, &$form_state){
 
     $form = array();
@@ -128,9 +132,6 @@ function fossee_forum_discussion_comment_form($form, &$form_state){
         '#value' => t('Add a Comment'),
       	);
     }
-    
-    
-    
     return $form;
 }
 
@@ -192,7 +193,6 @@ function fossee_forum_discussion_comment_form_submit($form, &$form_state)
             ));
         $query->execute();
         $params['comment_email_to_author']['comment_msg'] = $form_state['values']['comment'];
-        //$params = array('comment_msg' => $form_state['values']['comment']);
         drupal_mail('fossee_forum_discussion', 'comment_email_to_author', $user_email, language_default(), $params);
 	drupal_set_message(t("DONE"));
 }
