@@ -35,7 +35,7 @@ function fossee_forum_discussion_schema()
 	       		),
 	       		'forum_id' => array(
 	         	'description' => 'Stores the ID of page as Forum Id',
-	         	'type'        => 'int',
+	         	'type'        => 'text',
 	         	'not null'    => TRUE,
 	       		),
 	       		

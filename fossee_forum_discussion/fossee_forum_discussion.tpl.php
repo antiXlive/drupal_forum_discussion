@@ -11,20 +11,7 @@ foreach($comment as $c)
 	<div style="margin-left:3%;width:85%;height:100%;margin-bottom:1%" id="demo">
 		<div style="border:1px solid #868686;border-radius:30px;">
 			<p style="color:black;padding:0 1.5%;padding-top:1%;margin-bottom:1%">
-				<?php print_r ($c[0]->comment_msg); 
-//					$all_user_emails = get_user_emails($c[0]->comment_id);
-//					//print_r($all_user_emails);
-//					
-//					$a = "anon1@yopmail.com";
-//					$b = "anon1@yopmail.com";
-//					//$b = "piyushvostro@gmail.com";
-//					$filter = array($a.",", $b.",");
-//        				$all_user_emails = str_replace($filter, '', $all_user_emails);
-//        				//print_r($all_user_emails);
-//        				$all_user_emails = substr($all_user_emails, 0, -1);
-//        				print_r($all_user_emails);
-				
-				?>
+				<?php print_r ($c[0]->comment_msg); ?>
 			</p>
 		</div>
 		<div style="width:95%;margin:0 auto;">
@@ -82,7 +69,7 @@ else
 {
 ?>
 	<div style="width:100%;text-align:center">
-		<h1 style="font-size:26px;color:#A7DDD6;">No Comments</h1>
+		<h1 style="font-size:35px;color:#A7DDD6;">No Comments</h1>
 	</div>
 <?php
 }
@@ -236,8 +223,8 @@ else
         			
         			send_email_to_reply_author($umail, $replymsg);
         			send_email_to_forum_members($comment_author_email, $all_user_emails, $replymsg);
-        			$redirect = url(current_path(), array('absolute' => TRUE));
-				header('Location: '.$redirect);
+        			$current_path = url(current_path(), array('absolute' => TRUE));
+				header('Location: '.$current_path);
 			}
 		}
 	}
