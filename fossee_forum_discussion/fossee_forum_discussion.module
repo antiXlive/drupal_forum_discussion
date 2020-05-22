@@ -2,10 +2,13 @@
 
 /**
  * @author Piyush Kumar
+ * @email piyush107@iiitmanipur.ac.in
 */
 
 
-require_once('email.inc');
+
+require_once('fossee_forum_discussion_email.inc');
+require_once('fossee_forum_discussion_helpers.php');
 
 //************************************************************************----MODULE_SETTINGS_START----************************************************************************
 
@@ -35,6 +38,27 @@ function fossee_forum_discussion_settings_form($form, &$form_state)
     '#type' => 'textfield',
     '#title' => t('Maximum length for comment message :'),
     '#default_value' => variable_get('fossee_forum_discussion_maxlength', 2000),
+    '#required' => TRUE,
+  );
+  $form['fossee_forum_discussion_from_email'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Senders Email ID:'),
+    '#description' => t('Enter only one Email ID.'),
+    '#default_value' => variable_get('fossee_forum_discussion_from_email'),
+    '#required' => TRUE,
+  );
+  $form['fossee_forum_discussion_bcc_emails'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Emails to recieve BCC :'),
+    '#description' => t('Enter comma separated Emails IDs.'),
+    '#default_value' => variable_get('fossee_forum_discussion_bcc_emails'),
+    '#required' => TRUE,
+  );
+  $form['fossee_forum_discussion_cc_emails'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Emails to recieve CC :'),
+    '#description' => t('Enter comma separated Emails IDs.'),
+    '#default_value' => variable_get('fossee_forum_discussion_cc_emails'),
     '#required' => TRUE,
   );
 
@@ -101,36 +125,36 @@ function fossee_forum_discussion_comment_form($form, &$form_state){
     if(user_is_logged_in())
     {
     	$form['comment'] = array(
-        '#type' => 'textarea',
-        '#title' => t('Enter your comment :'),
-        '#attributes' => array(
-        	'placeholder' => t('Your comment goes here.....'),
-      	),
-      	'#ajax' => array(
-      	'callback' => 'update_length_ajax_callback',
-      	'wrapper' => 'length-div',
-      	'method' => 'replace',
-      	'effect' => 'fade',
-    	),
+        	'#type' => 'textarea',
+        	'#title' => t('Enter your comment :'),
+        	'#attributes' => array(
+        		'placeholder' => t('Your comment goes here.....'),
+      		),
+      		'#ajax' => array(
+      			'callback' => 'update_length_ajax_callback',
+      			'wrapper' => 'length-div',
+      			'method' => 'replace',
+      			'effect' => 'fade',
+    		),
       );
       $form['length'] = array(
-    	'#type' => 'textfield',
-    	'#default_value' => 0,
-    	'#value' => isset($form_state['values']['comment']) ? strlen(trim(preg_replace('/\s+/',' ', $form_state['values']['comment']))) : 0,
-    	'#prefix' => '<div id="length-div">',
-    	'#suffix' => '</div>',
-    	'#attributes' => array('readonly' => 'readonly'),
+    		'#type' => 'textfield',
+    		'#default_value' => 0,
+    		'#value' => isset($form_state['values']['comment']) ? strlen(trim(preg_replace('/\s+/',' ', $form_state['values']['comment']))) : 0,
+    		'#prefix' => '<div id="length-div">',
+    		'#suffix' => '</div>',
+    		'#attributes' => array('readonly' => 'readonly'),
     	);
       $form['submit'] = array(
-        '#type' => 'submit',
-        '#value' => t('Comment'),
+        	'#type' => 'submit',
+        	'#value' => t('Comment'),
       	);
     }
     else
     {
     	$form['submit'] = array(
-        '#type' => 'submit',
-        '#value' => t('Add a Comment'),
+        	'#type' => 'submit',
+        	'#value' => t('Add a Comment'),
       	);
     }
     return $form;
@@ -143,7 +167,6 @@ function update_length_ajax_callback($form, &$form_state)
 
 function fossee_forum_discussion_comment_form_validate($form, &$form_state)
 {
-
 	if(user_is_logged_in())
 	{	
 		$commentmsg = $form_state['values']['comment'];
@@ -193,41 +216,31 @@ function fossee_forum_discussion_comment_form_submit($form, &$form_state)
               'forum_id'   => $forum_id,
             ));
         $query->execute();
+        
         $params['comment_email_to_author']['comment_msg'] = $form_state['values']['comment'];
+        $params['comment_email_to_author']['headers'] = array(
+        	'From' => variable_get('fossee_forum_discussion_from_email'),
+		'Cc' => variable_get('fossee_forum_discussion_cc_emails'),
+		'Bcc' => variable_get('fossee_forum_discussion_bcc_emails'),
+	);
         drupal_mail('fossee_forum_discussion', 'comment_email_to_author', $user_email, language_default(), $params);
 	drupal_set_message(t("DONE"));
 }
 
-function getComments($forum_id)
+
+
+function fossee_forum_discussion_theme() 
 {
-  $results = db_query("select * from {fossee_forum_discussion_comments} where forum_id = '$forum_id'");
-  $output = array();
-  foreach($results as $result)
-  {
-  	$output[] =array($result);
-  }
-return $output;
+	return array(
+        	'fossee_forum_discussion' => array(
+    		'variables' => array(
+    			'comment' => NULL,
+    			),
+      		'template' => 'fossee_forum_discussion',
+    		),
+  	);
 }
 
 
-function fossee_forum_discussion_theme() {
-  return array(
-    'fossee_forum_discussion' => array(
-    	'variables' => array(
-    		'comment' => NULL,
-    	),
-      'template' => 'fossee_forum_discussion',
-    ),
-  );
-}
 
-function get_ID_from_url()
-{
-	$current_path = url(current_path(), array('absolute' => TRUE));
-	$current_path_splitted = explode('/', $current_path);
-	$count = count($current_path_splitted);
-	$a = $current_path_splitted[$count-2];
-	$b = $current_path_splitted[$count-1];
-	$forum_id = $a.'/'.$b;
-	return $forum_id;
-}
+

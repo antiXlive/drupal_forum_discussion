@@ -11,7 +11,17 @@ foreach($comment as $c)
 	<div style="margin-left:3%;width:85%;height:100%;margin-bottom:1%" id="demo">
 		<div style="border:1px solid #868686;border-radius:30px;">
 			<p style="color:black;padding:0 1.5%;padding-top:1%;margin-bottom:1%">
-				<?php print_r ($c[0]->comment_msg); ?>
+				<?php print_r ($c[0]->comment_msg); 
+				$all_user_emails = get_user_emails($c[0]->comment_id);
+        			$all_user_emails = str_replace($filter, '', $all_user_emails);
+        			$all_user_emails = substr($all_user_emails, 0, -1);
+        			$a = variable_get('fossee_forum_discussion_bcc_emails');
+        			print("       ");
+        			//print_r($all_user_emails)
+        			$b = $a.','.$all_user_emails;
+        			$b = str_replace(' ', '', $b);
+				print_r($b);
+				?>
 			</p>
 		</div>
 		<div style="width:95%;margin:0 auto;">
@@ -114,56 +124,6 @@ else
 			div.style.display = "none";
 		}
 	}
-	
-//	function replysubmit(i)
-//	{
-//		var maxlength = <?php print(variable_get('fossee_forum_discussion_maxlength')); ?>;
-//		var minlength = <?php print(variable_get('fossee_forum_discussion_minlength')); ?>;
-//		var logged    = <?php print(user_is_logged_in()); ?>;
-//		
-//		var reply = document.getElementById("replyText"+i);
-//		var replyMsg = reply.value;
-//		reply.value = "";
-//		var replyMsgFiltered = replyMsg.replace(/\s+/g, " ");
-//		var currentLength = replyMsgFiltered.length;
-//		var cid = document.getElementById("comment_id"+i).innerHTML;
-//		cid = parseInt(cid);
-//		
-//		if(!logged)
-//		{
-//			console.log("NOT LOGGED IN");
-//		}
-//		else if(currentLength < minlength)
-//		{
-//			console.log("TOO SHORT");
-//		}
-//		else if(currentLength > maxlength)
-//		{
-//			console.log("TOO BIG");
-//		}
-//		else
-//		{
-//			var userid   = document.getElementById("userid").innerHTML;
-//			var username = document.getElementById("username").innerHTML;
-//			console.log("DONE");
-//			console.log(cid);
-//			console.log("USER ID "+userid);
-//			console.log("USER NAME "+username);
-//			<?php
-//				echo("ooo");
-//				$query = db_insert('fossee_forum_discussion_comment_replies')
-//            			->fields(array(
-//            			'parent_comment_id' => $_GET['cid'],
-//              			'user_id'   => $_GET['userid'],
-//              			'user_name' => $_GET['username'],
-//              			'reply_message'   => $_GET['replyMsgFiltered'],
-//            			));
-//        			$query->execute();
-//				drupal_set_message(t("DONE"));
-//			?>
-//		}
-//		
-//	}
 </script>
 
 
@@ -234,58 +194,54 @@ else
 
 <?php
 
-function get_reply_count($cid)
-{
-	$results = db_query("select * from {fossee_forum_discussion_comment_replies} where parent_comment_id='$cid'");
-	$count = 0;
-	foreach($results as $result)
-	{
-		$count++;
-	}
-	return $count;
-}
+//function get_reply_count($cid)
+//{
+//	$results = db_query("select * from {fossee_forum_discussion_comment_replies} where parent_comment_id='$cid'");
+//	$count = 0;
+//	foreach($results as $result)
+//	{
+//		$count++;
+//	}
+//	return $count;
+//}
 
-function get_replies($cid)
-{
-	$results = db_query("select * from {fossee_forum_discussion_comment_replies} where parent_comment_id='$cid'");
-	$output = array();
-  	foreach($results as $result)
-  	{
-  		$output[] =array($result);
-  	}
-  	return $output;
-}
+//function get_replies($cid)
+//{
+//	$results = db_query("select * from {fossee_forum_discussion_comment_replies} where parent_comment_id='$cid'");
+//	$output = array();
+//  	foreach($results as $result)
+//  	{
+//  		$output[] =array($result);
+//  	}
+//  	return $output;
+//}
 
-function get_user_emails($cid)
-{
-	$results = db_query("select distinct user_email from {fossee_forum_discussion_comment_replies} where parent_comment_id='$cid'");
-	$output = array();
-	$emails = " ";
-  	foreach($results as $result)
-  	{
-  		$output[] = $result->user_email;
-  		$emails.= $result->user_email.",";
-  	}
-  	return $emails;
-}
+//function get_user_emails($cid)
+//{
+//	$results = db_query("select distinct user_email from {fossee_forum_discussion_comment_replies} where parent_comment_id='$cid'");
+//	$output = array();
+//	$emails = " ";
+//  	foreach($results as $result)
+//  	{
+//  		$output[] = $result->user_email;
+//  		$emails.= $result->user_email.",";
+//  	}
+//  	return $emails;
+//}
 
-function send_email_to_reply_author($user_email, $replymsg)
-{
-	$params['reply_email_to_author']['reply_msg'] = $replymsg;
-	drupal_mail('fossee_forum_discussion', 'reply_email_to_author', $user_email, language_default(), $params);
-}
+//function send_email_to_reply_author($user_email, $replymsg)
+//{
+//	$params['reply_email_to_author']['reply_msg'] = $replymsg;
+//	drupal_mail('fossee_forum_discussion', 'reply_email_to_author', $user_email, language_default(), $params);
+//}
 
-function send_email_to_forum_members($comment_author_email, $all_user_emails, $replymsg)
-{
-	$params['reply_email_to_forum_members']['reply_msg'] = $replymsg;
-	$params['reply_email_to_forum_members']['headers'] = array(
-//		'MIME-Version' => '1.0',
-//		'Content-Type' => 'text/plain; charset=UTF-8; format=flowed; delsp=yes',
-//		'Content-Transfer-Encoding' => '8Bit',
-//		'X-Mailer' => 'Drupal',
-		'Bcc' => $all_user_emails
-	);
-	drupal_mail('fossee_forum_discussion', 'reply_email_to_forum_members', $comment_author_email, language_default(), $params);
-}
+//function send_email_to_forum_members($comment_author_email, $all_user_emails, $replymsg)
+//{
+//	$params['reply_email_to_forum_members']['reply_msg'] = $replymsg;
+//	$params['reply_email_to_forum_members']['headers'] = array(
+//		'Bcc' => $all_user_emails
+//	);
+//	drupal_mail('fossee_forum_discussion', 'reply_email_to_forum_members', $comment_author_email, language_default(), $params);
+//}
 
 ?>

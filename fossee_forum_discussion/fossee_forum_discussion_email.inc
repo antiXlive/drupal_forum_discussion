@@ -5,13 +5,17 @@ function fossee_forum_discussion_mail($key, &$message, $params)
 	switch($key)
 	{
 		case 'comment_email_to_author':
+			$message['headers'] = $params['comment_email_to_author']['headers'];
 			$message['subject'] = t("Your comment has been successfully posted.");
 			$message['body'][]  = t("Comment message: @comment_msg", array('@comment_msg' => $params['comment_email_to_author']['comment_msg']));
 			break;
+			
 		case 'reply_email_to_author':
+			$message['headers'] = $params['reply_email_to_author']['headers'];
 			$message['subject'] = t("Your reply has been successfully posted.");
 			$message['body'][]  = t("Reply message: @reply_msg", array('@reply_msg' => $params['reply_email_to_author']['reply_msg']));
 			break;
+			
 		case 'reply_email_to_forum_members':
 			$message['headers'] = $params['reply_email_to_forum_members']['headers'];
 			$message['subject'] = t("A new reply has been posted under @title.");
