@@ -11,17 +11,7 @@ foreach($comment as $c)
 	<div style="margin-left:3%;width:85%;height:100%;margin-bottom:1%" id="demo">
 		<div style="border:1px solid #868686;border-radius:30px;">
 			<p style="color:black;padding:0 1.5%;padding-top:1%;margin-bottom:1%">
-				<?php print_r ($c[0]->comment_msg); 
-				$all_user_emails = get_user_emails($c[0]->comment_id);
-        			$all_user_emails = str_replace($filter, '', $all_user_emails);
-        			$all_user_emails = substr($all_user_emails, 0, -1);
-        			$a = variable_get('fossee_forum_discussion_bcc_emails');
-        			print("       ");
-        			//print_r($all_user_emails)
-        			$b = $a.','.$all_user_emails;
-        			$b = str_replace(' ', '', $b);
-				print_r($b);
-				?>
+				<?php print_r ($c[0]->comment_msg);?>
 			</p>
 		</div>
 		<div style="width:95%;margin:0 auto;">
