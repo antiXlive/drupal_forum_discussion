@@ -12,4 +12,4 @@ With a perfect feature to notify the users regarding their comments or replies. 
 
 ## License
 
-This module is licensed under the GPL License - see the [LICENSE.md](LICENSE.md) file for details.
+This module is licensed under the GPL License - see the [LICENSE.md](LICENSE) file for details.
