@@ -6,7 +6,7 @@ On different pages the user will be greeted with a different forum discussion, s
 With a perfect feature to notify the users regarding their comments or replies. This module automatically sends email to the users on various actions like posting a new comment, replying to an existing comment.
 
 ## INSTALLATION
-Install the fossee_forum_discussion module as you would normally install a contributed Drupal module. Visit [Installing Drupal 8 Modules](https://www.drupal.org/node/1897420) for further information.
+Install the fossee_forum_discussion module as you would normally install a contributed Drupal module. Visit [Installing Drupal 7 Modules](https://www.drupal.org/node/1897420) for further information.
 
 
 ## AUTHORS
