@@ -18,7 +18,8 @@ foreach($comment as $c)
 			<p style="display:inline-block;padding-left:1%;margin-bottom:1%">
 				<a style="text-decoration:none;cursor:pointer;" onclick="toggleReplyForm(<?php print($i); ?>)">Reply</a>
 			</p>
-			<p style="display:inline-block;padding-left:3%;cursor:pointer;color:#015f8c" onclick="toggleReplyView(<?php print($i) ?>)">
+			<p style="display:inline-block;padding-left:3%;cursor:pointer;color:#015f8c" 
+				onclick="toggleReplyView(<?php print($i) ?>, <?php print(get_reply_count($c[0]->comment_id)) ?>)">
 				<?php print(get_reply_count($c[0]->comment_id)." Reply"); ?>
 			</p>
 			<p style="color:black;float:right;margin:0;font-size:13px;">
@@ -102,16 +103,24 @@ else
 		?>
 	}
 	
-	function toggleReplyView(i)
+	function toggleReplyView(i, count)
 	{
 		var div = document.getElementById("replydiv"+i);
-		if(div.style.display === "none")
+		if(count == 0)
 		{
-			div.style.display = "block";
+			div.style.display = "none";
 		}
 		else
 		{
-			div.style.display = "none";
+			if(div.style.display === "none")
+			{
+				div.style.display = "block";
+			}
+			else
+			{
+				div.style.display = "none";
+			}
+
 		}
 	}
 </script>
